@@ -32,7 +32,8 @@ object Application extends Controller {
       mapping(
         "deviceId" -> text,
         "x" -> number,
-        "y" -> number
+        "y" -> number,
+        "time" -> ignored(System.currentTimeMillis / 1000)
       )(LogItem.apply)(LogItem.unapply)
     )
 

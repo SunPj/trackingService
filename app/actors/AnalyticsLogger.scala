@@ -2,13 +2,14 @@ package actors
 
 import akka.actor.Actor
 import scala.collection.mutable
+import scala.collection.mutable.ArrayBuffer
 
 /**
  *
  * @author auldanov
  */
 
-case class LogItem(deviceId: String, x: Int, y: Int)
+case class LogItem(deviceId: String, x: Int, y: Int, time: Long)
 
 /**
  * Main event type, it has a unique deviceId and time of arising
@@ -43,15 +44,24 @@ class AnalyticsLogger extends Actor {
 
   val events = mutable.ArrayBuffer[Event]()
 
-  val logs = mutable.Map[String,(Long, List[Event])]()
+  val logs = mutable.Map[String, ArrayBuffer[LogItem]]()
+
+  // 5 hours
+  val newVisitLimit = 5 * 60 * 60
 
   def receive = {
-    case LogItem(deviceId, x, y) =>  {
-      // TODO check is this newcomer
+    case v @ LogItem(deviceId, x, y, time) =>  {
+      // check is this newcomer
+      if (!logs.contains(deviceId) || logs(deviceId).last.time <= time - newVisitLimit)
+        events += new NewcomerEvent(deviceId, time)
 
       // TODO check stagnate
 
       // TODO add log
+      if (!logs.contains(deviceId))
+        logs(deviceId) = ArrayBuffer(v)
+      else
+        logs(deviceId) += v
 
       // TODO check leave
 
